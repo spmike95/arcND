@@ -475,6 +475,7 @@
 
 ; turn off server caching via (= caching* 0) or won't see changes
 
+;(= caching* 0)
 (defop news.css req
   (pr "
 body  { font-family:Verdana; font-size:10pt; color:#828282; }
@@ -579,14 +580,14 @@ function vote(node) {
               (when (is switch 'full)
                 (tag (td style "line-height:24pt; height:10px;")
                   (spanclass pagetop
-                    (tag b (link this-site* "news"))
+                    (tag b (link this-site* "news" white))
                     (hspace 10)
                     (toprow user label))))
              (if (is switch 'full)
                  (tag (td style "text-align:right;padding-right:4px;")
                    (spanclass pagetop (topright user whence)))
                  (tag (td style "line-height:24pt; height:10px;")
-                   (spanclass pagetop (prbold label))))))))
+                   (spanclass pagetop (fontcolor white(prbold label)))))))))
   (map [_ user] pagefns*)
   (spacerow 10))
 
@@ -613,7 +614,7 @@ function vote(node) {
     (toplink "comments" "newcomments" label)
     (toplink "jobs"     "jobs"        label)
     (hook 'toprow user label)
-    (link "submit")
+    (toplink "submit" "submit" label)
     (toplink "submit job" "jsubmit"   label)
     (toplink "create poll" "newpoll" label)
     (unless (mem label toplabels*)
@@ -621,7 +622,7 @@ function vote(node) {
 
 (def toplink (name dest label)
   (tag-if (is name label) (span class 'topsel)
-    (link name dest)))
+    (link name dest white)))
 
 (def topright (user whence (o showkarma t))
   (when user 
