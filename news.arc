@@ -10,7 +10,7 @@
 (= this-site*    "Four Horsemen Founder Society"
    site-url*     "http://news.yourdomain.com"
    parent-url*   "http://foundersociety.nd.edu"
-   favicon-url*  "4HSLogo-update.png"
+   favicon-url*  "4HSLogo-crop.png"
    site-desc*    "What this site is about."               ; for rss feed
    site-color*   (color 2 43 91)
    border-color* (color 220 180 57)
@@ -394,7 +394,7 @@
 
 ; Page Layout
 
-(= up-url* "grayarrow.gif" down-url* "graydown.gif" logo-url* "4HSLogo-update.png" blank-url* "s.gif" contact-url* "contacts.png")
+(= up-url* "grayarrow.gif" down-url* "graydown.gif" logo-url* "4HSLogo-crop.png" blank-url* "s.gif" full-logo-url* "4HSLogo-update.png")
 
 (defopr favicon.ico req favicon-url*)
 
@@ -503,8 +503,8 @@ a:visited { color:#828282; text-decoration:none; }
 
 .comment a:link, .comment a:visited { text-decoration:underline;}
 .dead a:link, .dead a:visited { color:#dddddd; }
-.pagetop a:visited { color:#000000;}
-.topsel a:link, .topsel a:visited { color:#ffffff; }
+.pagetop a:visited { color:#ffffff;}
+.topsel a:link, .topsel a:visited { color:#828282; }
 
 .subtext a:link, .subtext a:visited { color:#828282; }
 .subtext a:hover { text-decoration:underline; }
@@ -573,11 +573,11 @@ function vote(node) {
 (def pagetop (switch lid label (o title) (o user) (o whence))
 ; (tr (tdcolor black (vspace 5)))
   (tr (tdcolor (main-color user)
-        (tag (table border 0 cellpadding 0 cellspacing 0 width "100%"
+        (tag (table border 0 cellpadding 0 cellspacing 0 width "100%" 
                     style "padding:2px")
           (tr (gen-logo)
               (when (is switch 'full)
-                (tag (td style "line-height:12pt; height:10px;")
+                (tag (td style "line-height:24pt; height:10px;")
                   (spanclass pagetop
                     (tag b (link this-site* "news"))
                     (hspace 10)
@@ -585,7 +585,7 @@ function vote(node) {
              (if (is switch 'full)
                  (tag (td style "text-align:right;padding-right:4px;")
                    (spanclass pagetop (topright user whence)))
-                 (tag (td style "line-height:12pt; height:10px;")
+                 (tag (td style "line-height:24pt; height:10px;")
                    (spanclass pagetop (prbold label))))))))
   (map [_ user] pagefns*)
   (spacerow 10))
@@ -593,7 +593,7 @@ function vote(node) {
 (def gen-logo ()
   (tag (td style "width:18px;padding-right:4px")
     (tag (a href parent-url*)
-      (tag (img src logo-url* width 18 height 18 
+      (tag (img src logo-url* width 36 height 36 
                 style "border:1px #@(hexrep border-color*) solid;")))))
 
 (= toplabels* '(nil "about" "welcome" "new" "threads" "comments" "jobs" "*"))
@@ -603,7 +603,7 @@ function vote(node) {
 (= welcome-url* "welcome")
 
 (def toprow (user label)
-  (w/bars 
+  (w/barsw 
     (toplink "about" "about" label)
     (when (noob user)
       (toplink "welcome" welcome-url* label)) 
@@ -617,7 +617,7 @@ function vote(node) {
     (toplink "submit job" "jsubmit"   label)
     (toplink "create poll" "newpoll" label)
     (unless (mem label toplabels*)
-      (fontcolor white (pr label)))))
+      (fontcolor textgray (pr label)))))
 
 (def toplink (name dest label)
   (tag-if (is name label) (span class 'topsel)
@@ -626,14 +626,14 @@ function vote(node) {
 (def topright (user whence (o showkarma t))
   (when user 
     (userlink user user nil)
-    (when showkarma (pr  "&nbsp;(@(karma user))"))
-    (pr "&nbsp;|&nbsp;"))
+    (when showkarma (fontcolor white (pr  "&nbsp;(@(karma user))")))
+    (fontcolor white (pr "&nbsp;|&nbsp;")))
   (if user
-      (rlinkf 'logout (req)
+      (rlinkfw 'logout (req)
         (when-umatch/r user req
           (logout-user user)
           whence))
-      (onlink "login"
+      (onlinkw "login"
         (login-page 'both nil 
                     (list (fn (u ip) 
                             (ensure-news-user u)
@@ -860,11 +860,16 @@ function vote(node) {
                    (spacerow 30))
     (display-items user items label title url 0 perpage* number)))
 
+(= email1 '\@)
+
+
 (def alistpage (user t1 label title (o url label) (o number t))
   (hook 'alistpage user)
   (longpage user t1 nil label title url
-            (center (gentag img src logo-url*   border 0 vspace 3 hspace 7)
-             
+            (center ;(gentag img src logo-url*   border 0 vspace 3 hspace 7)
+             (tag (a href parent-url*)
+      (tag (img src full-logo-url* width 418 height 531 vspace 3 hspace 7)))
+                    
                     (br 3) (fontcolor black (pr "In Notre Dame lore they are known as four legendary football players."))
                     (br 2) (fontcolor black (prbold "For us, they are something different:"))
                     (br) (fontcolor black (prbold "creativity, initiative, risk-taking, and business strategy."))
@@ -880,10 +885,10 @@ function vote(node) {
                     (br) (fontcolor black (prbold "the Four Horsement ride again."))
                     (br 6) (fontcolor black (pr "Have more to say?"))
                     (br) (fontcolor black (pr "We're listening"))
-                    (br 2) ;(fontcolor black (pr "Sean Fitzgerald || sfitzge4 nd.edu"))
-                    ;(br) (fontcolor black (pr "Yuxuan 'Ethan' Chen || ychen18 nd.edu"))
-                    ;(br) (fontcolor black (pr "Maribeth Rauh || mrauh1 nd.edu"))
-                    (gentag img src contact-url*   border 0 vspace 3 hspace 7)
+                    (br 2) (fontcolor black (pr "Sean Fitzgerald || sfitzge4") (pr email1) (pr "nd.edu"))
+                    (br) (fontcolor black (pr "Yuxuan ") (pr '\") (pr "Ethan") (pr '\") (pr " Chen || ychen18") (pr email1) (pr "nd.edu"))
+                    (br) (fontcolor black (pr "Maribeth Rauh || mrauh1") (pr email1) (pr "nd.edu"))
+                    ;(gentag img src contact-url*   border 0 vspace 3 hspace 7)
                     (br 4)
                    (spacerow 30))))
 
@@ -2012,7 +2017,7 @@ function vote(node) {
 (newsop newpoll ()
   (if (and user (> (karma user) poll-threshold*))
       (newpoll-page user)
-      (pr "Sorry, you need @poll-threshold* karma to create a poll.")))
+      (pr "Sorry, you need to be logged in and have at least @poll-threshold* karma to create a poll.")))
   
 (def newpoll-page (user (o title "Poll: ") (o text "") (o opts "") (o msg))
   (minipage "New Poll"
@@ -2617,7 +2622,6 @@ function vote(node) {
 (newscache leaderspage user 1000
   (longpage user (msec) nil "leaders" "Leaders" "leaders"
     (sptab
-     (tr (tdr:pr "SHOW"))
       (let i 0
         (each u (firstn nleaders* (leading-users))
           (tr (tdr:pr (++ i) ".")

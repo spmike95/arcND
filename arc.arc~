@@ -1573,18 +1573,6 @@
                                  (pr ,out))))))
                   body)))))
 
-(mac w/barsw body
-  (w/uniq (out needbars)
-    `(let ,needbars nil
-       (do ,@(map (fn (e)
-                    `(let ,out (tostring ,e)
-                       (unless (is ,out "")
-                         (if ,needbars
-                             (fontcolor white (pr bar* ,out))
-                             (do (set ,needbars)
-                                 (pr ,out))))))
-                  body)))))
-
 (def len< (x n) (< (len x) n))
 
 (def len> (x n) (> (len x) n))

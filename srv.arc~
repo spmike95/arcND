@@ -403,9 +403,6 @@ Connection: close"))
 (mac onlink (text . body)
   `(w/link (do ,@body) (pr ,text)))
 
-(mac onlinkw (text . body)
-  `(w/link (do ,@body) (fontcolor white (pr ,text))))
-
 (mac onrlink (text . body)
   `(w/rlink (do ,@body) (pr ,text)))
 
@@ -416,9 +413,6 @@ Connection: close"))
 
 (mac rlinkf (text parms . body)
   `(tag (a href (rflink (fn ,parms ,@body))) (pr ,text)))
-
-(mac rlinkfw (text parms . body)
-  `(tag (a href (rflink (fn ,parms ,@body))) (fontcolor white (pr ,text))))
 
 ;(defop top req (linkf 'whoami? (req) (pr "I am " (get-user req))))
 
