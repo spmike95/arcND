@@ -428,10 +428,32 @@
                  ,@body)
              (row (procrast-msg ,gu ,gw)))))))
 
+(mac fulltopc (user lid label title currentpage whence . body )
+  (w/uniq (gu gi gl gt gw)
+    `(with (,gu ,user ,gi ,lid ,gl ,label ,gt ,title ,gw ,whence)
+       (npage (+ this-site* (if ,gt (+ bar* ,gt) ""))
+         (if (check-procrast ,gu)
+             (do (pagetopc 'full ,gi ,gl ,currentpage ,gt ,gu ,gw)
+                 (hook 'page ,gu ,gl)
+                 ,@body)
+             (row (procrast-msg ,gu ,gw)))))))
+
 (mac longpage (user t1 lid label title whence . body)
   (w/uniq (gu gt gi)
     `(with (,gu ,user ,gt ,t1 ,gi ,lid)
        (fulltop ,gu ,gi ,label ,title ,whence
+         (trtd ,@body)
+         (trtd (vspace 10)
+               (color-stripe (main-color ,gu))
+               (br)
+               (center
+                 (hook 'longfoot)
+                 (admin-bar ,gu (- (msec) ,gt) ,whence)))))))
+
+(mac longpagec (user t1 lid label title currentpage whence . body)
+  (w/uniq (gu gt gi)
+    `(with (,gu ,user ,gt ,t1 ,gi ,lid)
+       (fulltopc ,gu ,gi ,label ,title ,currentpage ,whence
          (trtd ,@body)
          (trtd (vspace 10)
                (color-stripe (main-color ,gu))
@@ -504,8 +526,8 @@ a:visited { color:#828282; text-decoration:none; }
 
 .comment a:link, .comment a:visited { text-decoration:underline;}
 .dead a:link, .dead a:visited { color:#dddddd; }
-.pagetop a:visited { color:#ffffff;}
-.topsel a:link, .topsel a:visited { color:#828282; }
+.pagetop a:visited { color:#000000;}
+.topsel a:link, .topsel a:visited { color:#ffffff; }
 
 .subtext a:link, .subtext a:visited { color:#828282; }
 .subtext a:hover { text-decoration:underline; }
@@ -570,7 +592,6 @@ function vote(node) {
   (aif (and user (uvar user topcolor))
        (hex>color it)
        site-color*))
-
 (def pagetop (switch lid label (o title) (o user) (o whence))
 ; (tr (tdcolor black (vspace 5)))
   (tr (tdcolor (main-color user)
@@ -587,7 +608,27 @@ function vote(node) {
                  (tag (td style "text-align:right;padding-right:4px;")
                    (spanclass pagetop (topright user whence)))
                  (tag (td style "line-height:24pt; height:10px;")
-                   (spanclass pagetop (fontcolor white(prbold label)))))))))
+                   (spanclass pagetop (fontcolor white (prbold label)))))))))
+  (map [_ user] pagefns*)
+  (spacerow 10))
+
+(def pagetopc (switch lid label currentpage (o title) (o user) (o whence))
+; (tr (tdcolor black (vspace 5)))
+  (tr (tdcolor (main-color user)
+        (tag (table border 0 cellpadding 0 cellspacing 0 width "100%" 
+                    style "padding:2px")
+          (tr (gen-logo)
+              (when (is switch 'full)
+                (tag (td style "line-height:24pt; height:10px;")
+                  (spanclass pagetop
+                    (tag b (link this-site* "news" white))
+                    (hspace 10)
+                    (toprowc user label currentpage))))
+             (if (is switch 'full)
+                 (tag (td style "text-align:right;padding-right:4px;")
+                   (spanclass pagetop (topright user whence)))
+                 (tag (td style "line-height:24pt; height:10px;")
+                   (spanclass pagetop (fontcolor white (prbold label)))))))))
   (map [_ user] pagefns*)
   (spacerow 10))
 
@@ -620,13 +661,38 @@ function vote(node) {
     (unless (mem label toplabels*)
       (fontcolor textgray (pr label)))))
 
+(def toprowc (user label currentpage)
+  (w/barsw 
+    (toplinkc "about" "about" label currentpage)
+    (when (noob user)
+      (toplink "welcome" welcome-url* label)) 
+    (toplinkc "new" "newest" label currentpage)
+    (when user
+      (toplinkc "threads" (threads-url user) label currentpage))
+    (toplinkc "comments" "newcomments" label currentpage)
+    (toplinkc "jobs"     "jobs"        label currentpage)
+    (hook 'toprow user label)
+    (toplink "submit" "submit" label)
+    (toplink "submit job" "jsubmit"   label)
+    (toplink "create poll" "newpoll" label)
+    (unless (mem label toplabels*)
+      (fontcolor textgray (pr label)))))
+
 (def toplink (name dest label)
-  (tag-if (is name label) (span class 'topsel)
+   (tag-if (is name label) (span class 'topsel)
     (link name dest white)))
+  
+  (def toplinkc (name dest label currentpage)
+  (unless (is currentpage name)
+   (tag-if (is name label) (span class 'topsel)
+    (link name dest white)))
+  (if (is currentpage name)
+      (tag-if (is name label) (span class 'topsel)
+    (link name dest textgray))))
 
 (def topright (user whence (o showkarma t))
   (when user 
-    (userlink user user nil)
+    (userlinkw user user nil)
     (when showkarma (fontcolor white (pr  "&nbsp;(@(karma user))")))
     (fontcolor white (pr "&nbsp;|&nbsp;")))
   (if user
@@ -854,9 +920,14 @@ function vote(node) {
   (longpage user t1 nil label title url
     (display-items user items label title url 0 perpage* number)))
 
-(def jlistpage (user t1 items label title (o url label) (o number t))
+(def clistpage (user t1 items label title currentpage (o url label) (o number t))
+  (hook 'clistpage user)
+  (longpagec user t1 nil label title currentpage url
+    (display-items user items label title url 0 perpage* number)))
+
+(def jlistpage (user t1 items label title currentpage (o url label) (o number t))
   (hook 'jlistpage user)
-  (longpage user t1 nil label title url
+  (longpagec user t1 nil label title currentpage url
             (sptab (tr (tdr:prn "All the jobs listed here were posted by alumni."))
                    (spacerow 30))
     (display-items user items label title url 0 perpage* number)))
@@ -864,9 +935,9 @@ function vote(node) {
 (= email1 '\@)
 
 
-(def alistpage (user t1 label title (o url label) (o number t))
+(def alistpage (user t1 label title currentpage (o url label) (o number t))
   (hook 'alistpage user)
-  (longpage user t1 nil label title url
+  (longpagec user t1 nil label title currentpage url
             (center ;(gentag img src logo-url*   border 0 vspace 3 hspace 7)
              (tag (a href parent-url*)
       (tag (img src full-logo-url* width 418 height 531 vspace 3 hspace 7)))
@@ -900,7 +971,7 @@ function vote(node) {
 ; cached page.  If this were a prob, could make deletion clear caches.
 
 (newscache newestpage user 40
-  (listpage user (msec) (newstories user maxend*) "new" "New Links" "newest"))
+  (clistpage user (msec) (newstories user maxend*) "new" "New Links" "new" "newest"))
 
 (def newstories (user n)
   (retrieve n [cansee user _] stories*))
@@ -916,7 +987,7 @@ function vote(node) {
   ;(listpage user (msec) (jobstories user maxend*) "jobs" "Jobs")
   ;(pagemessage "This is for jobs posted by alumni."))
 
-(jlistpage user (msec) (jobstories user maxend*) "jobs" "Jobs"))
+(jlistpage user (msec) (jobstories user maxend*) "jobs" "Jobs" "jobs"))
           
             
 
@@ -928,7 +999,7 @@ function vote(node) {
   
 
 (newscache aboutpage user 1000
-           (alistpage user (msec) "about" "About"))
+           (alistpage user (msec) "about" "About" "about"))
 
 
 
@@ -1311,6 +1382,11 @@ function vote(node) {
 
 (def userlink (user subject (o show-avg t))
   (link (user-name user subject) (user-url subject))
+  (awhen (and show-avg* (admin user) show-avg (uvar subject avg))
+    (pr " (@(num it 1 t t))")))
+
+(def userlinkw (user subject (o show-avg t))
+  (link (user-name user subject) (user-url subject) white)
   (awhen (and show-avg* (admin user) show-avg (uvar subject avg))
     (pr " (@(num it 1 t t))")))
 
@@ -2533,7 +2609,7 @@ function vote(node) {
       (withs (title (+ subject "'s comments")
               label (if (is user subject) "threads" title)
               here  (threads-url subject))
-        (longpage user (msec) nil label title here
+        (longpagec user (msec) nil label title "threads" here
           (awhen (keep [and (cansee user _) (~subcomment _)]
                        (comments subject maxend*))
             (display-threads user it label title here))))
@@ -2694,8 +2770,8 @@ function vote(node) {
 (newsop newcomments () (newcomments-page user))
 
 (newscache newcomments-page user 60
-  (listpage user (msec) (visible user (firstn maxend* comments*))
-            "comments" "New Comments" "newcomments" nil))
+  (clistpage user (msec) (visible user (firstn maxend* comments*))
+            "comments" "New Comments" "comments" "newcomments" nil))
 
 
 ; Doc
